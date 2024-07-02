@@ -1,4 +1,4 @@
-name: Prow Scripts Docker Image CI
+name: Auto Push 
 on:
   workflow_dispatch:
     inputs:
