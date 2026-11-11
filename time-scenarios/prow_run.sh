@@ -18,9 +18,9 @@ source time-scenarios/env.sh
 krkn_loc=/home/krkn/kraken
 
 # Substitute config with environment vars defined
-envsubst < time-scenarios/time_scenario.yaml.template > /tmp/time_scenario.yaml
+envsubst < "time-scenarios/${SCENARIO_TEMPLATE_FILE##*/}" > /tmp/time_scenario.yaml
 export SCENARIO_FILE="/tmp/time_scenario.yaml"
-envsubst < config.yaml.template > /tmp/time_scenario_config.yaml
+envsubst < "$CONFIG_FILE_TEMPLATE" > /tmp/time_scenario_config.yaml
 
 # Run Kraken
 cat /tmp/time_scenario_config.yaml

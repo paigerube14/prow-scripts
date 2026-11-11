@@ -23,7 +23,7 @@ python3.11 /home/krkn/build_config_file.py --outconfig $krkn_loc/scenarios/http-
 
 # Substitute config with environment vars defined
 export SCENARIO_FILE="$krkn_loc/scenarios/http-load.yaml"
-envsubst < config.yaml.template > /tmp/http_load_config.yaml
+envsubst < "$CONFIG_FILE_TEMPLATE" > /tmp/http_load_config.yaml
 
 checks
 

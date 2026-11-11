@@ -19,13 +19,13 @@ oc version
 source kubevirt-outage/env.sh
 source common_run.sh
 
-envsubst < kubevirt-outage/kubevirt_scenario.yaml.template > $krkn_loc/scenarios/kube/kubevirt.yml
+envsubst < "kubevirt-outage/${SCENARIO_TEMPLATE_FILE##*/}" > "$krkn_loc/scenarios/kube/kubevirt.yml"
 
 # Substitute config with environment vars defined
 export SCENARIO_FILE="$sub_scenario_folder/kubevirt.yml"
 
 # Substitute config with environment vars defined
-envsubst < config.yaml.template > $krkn_loc/kubevirt_outage_config.yaml
+envsubst < "$CONFIG_FILE_TEMPLATE" > "$krkn_loc/kubevirt_outage_config.yaml"
 
 checks
 

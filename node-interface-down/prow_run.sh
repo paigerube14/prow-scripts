@@ -7,57 +7,36 @@ ls
 # Source env.sh to read all the vars
 source env.sh
 
-export KUBECONFIG=$KRKN_KUBE_CONFIG
+export KUBECONFIG="$KRKN_KUBE_CONFIG"
 
 # cluster version
 echo "Printing cluster version"
 oc version
 
-source node-interface-down/env.sh
 source common_run.sh
+source node-interface-down/env.sh
 
-krkn_loc=/home/krkn/kraken
-SCENARIO_FOLDER="$krkn_loc/scenarios/kube"
+KRAKEN_FOLDER="${KRAKEN_FOLDER:-/home/krkn/kraken}"
+SCENARIO_TEMPLATE_PATH="node-interface-down/${SCENARIO_TEMPLATE_FILE##*/}"
+SCENARIO_PATH="$(resolve_scenario_path "$SCENARIO_FILE" "$KRAKEN_FOLDER")"
+export SCENARIO_FILE="$SCENARIO_PATH"
+CONFIG_FILE="/tmp/node-interface-down-config.yaml"
 
-yq -i ".[0].test_duration=$TEST_DURATION" $SCENARIO_FOLDER/node-interface-down.yml
-yq -i ".[0].label_selector=\"$LABEL_SELECTOR\"" $SCENARIO_FOLDER/node-interface-down.yml
-yq -i ".[0].namespace=\"$NAMESPACE\"" $SCENARIO_FOLDER/node-interface-down.yml
-yq -i ".[0].instance_count=$INSTANCE_COUNT" $SCENARIO_FOLDER/node-interface-down.yml
-yq -i ".[0].execution=\"$EXECUTION\"" $SCENARIO_FOLDER/node-interface-down.yml
-yq -i ".[0].image=\"$IMAGE\"" $SCENARIO_FOLDER/node-interface-down.yml
-yq -i ".[0].target=\"$NODE_NAME\"" $SCENARIO_FOLDER/node-interface-down.yml
-yq -i ".[0].service_account=\"$SERVICE_ACCOUNT\"" $SCENARIO_FOLDER/node-interface-down.yml
-yq -i ".[0].recovery_time=$RECOVERY_TIME" $SCENARIO_FOLDER/node-interface-down.yml
-yq -i ".[0].wait_duration=$WAIT_DURATION" $SCENARIO_FOLDER/node-interface-down.yml
-
-if [[ -n "$INTERFACES" ]]; then
-  IFS=',' read -ra array <<< "$INTERFACES"
-  for ((i=0; i<${#array[@]}; i++)); do
-    yq -i ".[0].interfaces[$i]=\"${array[$i]}\"" $SCENARIO_FOLDER/node-interface-down.yml
-  done
-fi
-
-if [[ -n "$TAINTS" ]]; then
-  IFS=',' read -ra array <<< "$TAINTS"
-  for ((i=0; i<${#array[@]}; i++)); do
-    yq -i ".[0].taints[$i]=\"${array[$i]}\"" $SCENARIO_FOLDER/node-interface-down.yml
-  done
-fi
-
-envsubst < config.yaml.template > /tmp/node-interface-down-config.yaml
+envsubst < "$SCENARIO_TEMPLATE_PATH" > "$SCENARIO_PATH"
+envsubst < "$CONFIG_FILE_TEMPLATE" > "$CONFIG_FILE"
 
 checks
 
 # Run Kraken
-cat $SCENARIO_FOLDER/node-interface-down.yml
-cat /tmp/node-interface-down-config.yaml
+cat "$SCENARIO_PATH"
+cat "$CONFIG_FILE"
 
 [ -z "$JUNIT_TESTCASE" ] && JUNIT_TESTCASE="node-interface-down"
 [ -z "$ARTIFACT_DIR" ] && ARTIFACT_DIR="/tmp"
-TEST_VERSION=$(oc version -o json | jq -r '.openshiftVersion')
+TEST_VERSION="$(oc version -o json | jq -r '.openshiftVersion')"
 
-python3.11 $krkn_loc/run_kraken.py --config=/tmp/node-interface-down-config.yaml \
--o /tmp/report.out \
---junit-testcase "$JUNIT_TESTCASE" \
---junit-testcase-path "$ARTIFACT_DIR" \
---junit-testcase-version "$TEST_VERSION"
+python3.11 "$KRAKEN_FOLDER/run_kraken.py" --config="$CONFIG_FILE" \
+  -o /tmp/report.out \
+  --junit-testcase "$JUNIT_TESTCASE" \
+  --junit-testcase-path "$ARTIFACT_DIR" \
+  --junit-testcase-version "$TEST_VERSION"

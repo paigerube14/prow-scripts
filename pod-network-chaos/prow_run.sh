@@ -23,9 +23,9 @@ if [[ -z $NAMESPACE ]]; then
   echo "Requires NAMASPACE parameter to be set, please check"
   exit 1
 fi
-envsubst < pod-network-chaos/pod_network_scenario.yaml.template > /tmp/pod_network_scenario.yaml
+envsubst < "pod-network-chaos/${SCENARIO_TEMPLATE_FILE##*/}" > /tmp/pod_network_scenario.yaml
 export SCENARIO_FILE="/tmp/pod_network_scenario.yaml"
-envsubst < config.yaml.template > /tmp/pod_network_scenario_config.yaml
+envsubst < "$CONFIG_FILE_TEMPLATE" > /tmp/pod_network_scenario_config.yaml
 
 cat /tmp/pod_network_scenario_config.yaml
 cat /tmp/pod_network_scenario.yaml

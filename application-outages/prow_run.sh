@@ -17,9 +17,9 @@ source application-outages/env.sh
 krkn_loc=/home/krkn/kraken
 
 # Substitute config with environment vars defined
-envsubst < application-outages/app_outages.yaml.template > /tmp/app_outages.yaml
+envsubst < "application-outages/${SCENARIO_TEMPLATE_FILE##*/}" > /tmp/app_outages.yaml
 export SCENARIO_FILE="/tmp/app_outages.yaml"
-envsubst < config.yaml.template > /tmp/app_outages_config.yaml
+envsubst < "$CONFIG_FILE_TEMPLATE" > /tmp/app_outages_config.yaml
 
 # Run Kraken
 cat /tmp/app_outages_config.yaml

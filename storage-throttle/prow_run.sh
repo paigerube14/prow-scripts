@@ -19,9 +19,9 @@ source common_run.sh
 krkn_loc=/home/krkn/kraken
 
 # Substitute config with environment vars defined
-envsubst < storage-throttle/storage_throttle.yaml.template > /tmp/storage_throttle.yaml
+envsubst < "storage-throttle/${SCENARIO_TEMPLATE_FILE##*/}" > /tmp/storage_throttle.yaml
 export SCENARIO_FILE="/tmp/storage_throttle.yaml"
-envsubst < config.yaml.template > /tmp/storage_throttle_config.yaml
+envsubst < "$CONFIG_FILE_TEMPLATE" > /tmp/storage_throttle_config.yaml
 
 checks
 

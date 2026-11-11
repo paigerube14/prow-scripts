@@ -7,10 +7,8 @@ ls
 # Source env.sh to read all the vars
 source env.sh
 
-export KUBECONFIG=$KRKN_KUBE_CONFIG
-krkn_loc=/home/krkn/kraken
-sub_scenario_folder="scenarios/kube"
-SCENARIO_FOLDER="$krkn_loc/$sub_scenario_folder"
+export KUBECONFIG="$KRKN_KUBE_CONFIG"
+KRAKEN_FOLDER="${KRAKEN_FOLDER:-/home/krkn/kraken}"
 
 # cluster version
 echo "Printing cluster version"
@@ -19,17 +17,21 @@ oc version
 source node-cpu-hog/env.sh
 source common_run.sh
 
+SCENARIO_TEMPLATE_PATH="node-cpu-hog/${SCENARIO_TEMPLATE_FILE##*/}"
+SCENARIO_PATH="$(resolve_scenario_path "$SCENARIO_FILE" "$KRAKEN_FOLDER")"
+export SCENARIO_FILE="$SCENARIO_PATH"
+CONFIG_FILE="$KRAKEN_FOLDER/cpu_hog_config.yaml"
+
 checks
 
 # Substitute config with environment vars defined
-envsubst < node-cpu-hog/cpu-hog.yml.template > $krkn_loc/scenarios/kube/cpu-hog.yml
-export SCENARIO_FILE="$sub_scenario_folder/cpu-hog.yml"
-envsubst < config.yaml.template > $krkn_loc/cpu_hog_config.yaml
+envsubst < "$SCENARIO_TEMPLATE_PATH" > "$SCENARIO_PATH"
+envsubst < "$CONFIG_FILE_TEMPLATE" > "$CONFIG_FILE"
 
 
 # Run Kraken
-cd $krkn_loc
-cat cpu_hog_config.yaml
-cat $SCENARIO_FILE
+cd "$KRAKEN_FOLDER"
+cat "$CONFIG_FILE"
+cat "$SCENARIO_FILE"
 
-python3.11 run_kraken.py --config=cpu_hog_config.yaml -o /tmp/report.out
+python3.11 run_kraken.py --config="$CONFIG_FILE" -o /tmp/report.out

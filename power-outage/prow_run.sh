@@ -17,9 +17,9 @@ echo "Printing cluster version"
 oc version
 
 # Substitute config with environment vars defined
-envsubst < power-outages/shutdown_scenario.yaml.template > /tmp/power_outage_scenario.yaml
+envsubst < "power-outages/${SCENARIO_TEMPLATE_FILE##*/}" > /tmp/power_outage_scenario.yaml
 export SCENARIO_FILE="/tmp/power_outage_scenario.yaml"
-envsubst < config.yaml.template > /tmp/power_outage_config.yaml
+envsubst < "$CONFIG_FILE_TEMPLATE" > /tmp/power_outage_config.yaml
 
 # Run Kraken
 cat /tmp/power_outage_scenario.yaml

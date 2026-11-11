@@ -19,9 +19,9 @@ krn_loc=/home/krkn/kraken
 
 # Substitute config with environment vars defined
 if [[ $TRAFFIC_TYPE == "egress" ]]; then
-  envsubst < network-chaos/network_chaos_egress.yaml.template > /tmp/network_chaos.yaml
+  envsubst < "network-chaos/${SCENARIO_TEMPLATE_FILE##*/}" > /tmp/network_chaos.yaml
 elif [[ $TRAFFIC_TYPE == "ingress" ]]; then
-  envsubst < network-chaos/network_chaos_ingress.yaml.template > /tmp/network_chaos.yaml
+  envsubst < "network-chaos/${SCENARIO_TEMPLATE_FILE##*/}" > /tmp/network_chaos.yaml
   export SCENARIO_TYPE="plugin_scenarios"
 else
   echo "Supported TRAFFIC_TYPE options are egress or ingress, please check"
@@ -29,7 +29,7 @@ else
 fi
 
 export SCENARIO_FILE="/tmp/network_chaos.yaml"
-envsubst < config.yaml.template > /tmp/network_chaos_config.yaml
+envsubst < "$CONFIG_FILE_TEMPLATE" > /tmp/network_chaos_config.yaml
 
 cat /tmp/network_chaos_config.yaml
 cat /tmp/network_chaos.yaml

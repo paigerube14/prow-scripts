@@ -19,8 +19,8 @@ krkn_loc=/home/krkn/kraken
 
 # Substitute config with environment vars defined
 export SCENARIO_FILE="/tmp/service_disruption_scenario.yaml"
-envsubst < service-disruption-scenarios/namespace_scenario.yaml.template > /tmp/service_disruption_scenario.yaml
-envsubst < config.yaml.template > /tmp/service_disruption_config.yaml
+envsubst < "service-disruption-scenarios/${SCENARIO_TEMPLATE_FILE##*/}" > /tmp/service_disruption_scenario.yaml
+envsubst < "$CONFIG_FILE_TEMPLATE" > /tmp/service_disruption_config.yaml
 
 # Run Kraken
 cat /tmp/service_disruption_config.yaml

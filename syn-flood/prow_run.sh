@@ -17,9 +17,9 @@ source syn-flood/env.sh
 krkn_loc=/home/krkn/kraken
 
 # Substitute config with environment vars defined
-envsubst < syn-flood/syn-flood.yaml.template > /tmp/syn_flood.yaml
+envsubst < "syn-flood/${SCENARIO_TEMPLATE_FILE##*/}" > /tmp/syn_flood.yaml
 export SCENARIO_FILE="/tmp/syn_flood.yaml"
-envsubst < config.yaml.template > /tmp/syn_flood_config.yaml
+envsubst < "$CONFIG_FILE_TEMPLATE" > /tmp/syn_flood_config.yaml
 
 
 # Run Kraken

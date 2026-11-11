@@ -7,63 +7,36 @@ ls
 # Source env.sh to read all the vars
 source env.sh
 
-export KUBECONFIG=$KRKN_KUBE_CONFIG
+export KUBECONFIG="$KRKN_KUBE_CONFIG"
 
 # cluster version
 echo "Printing cluster version"
 oc version
 
-source node-network-filter/env.sh
 source common_run.sh
+source node-network-filter/env.sh
 
-krkn_loc=/home/krkn/kraken
-SCENARIO_FOLDER="$krkn_loc/scenarios/kube"
+KRAKEN_FOLDER="${KRAKEN_FOLDER:-/home/krkn/kraken}"
+SCENARIO_TEMPLATE_PATH="node-network-filter/${SCENARIO_TEMPLATE_FILE##*/}"
+SCENARIO_PATH="$(resolve_scenario_path "$SCENARIO_FILE" "$KRAKEN_FOLDER")"
+export SCENARIO_FILE="$SCENARIO_PATH"
+CONFIG_FILE="/tmp/node-network-filter-config.yaml"
 
-yq -i ".[0].test_duration=$TEST_DURATION" $SCENARIO_FOLDER/network-filter.yml
-yq -i ".[0].label_selector=\"$LABEL_SELECTOR\"" $SCENARIO_FOLDER/network-filter.yml
-yq -i ".[0].namespace=\"$NAMESPACE\"" $SCENARIO_FOLDER/network-filter.yml
-yq -i ".[0].instance_count=$INSTANCE_COUNT" $SCENARIO_FOLDER/network-filter.yml
-yq -i ".[0].execution=\"$EXECUTION\"" $SCENARIO_FOLDER/network-filter.yml
-yq -i ".[0].ingress=$INGRESS" $SCENARIO_FOLDER/network-filter.yml
-yq -i ".[0].egress=$EGRESS" $SCENARIO_FOLDER/network-filter.yml
-yq -i ".[0].image=\"$IMAGE\"" $SCENARIO_FOLDER/network-filter.yml
-yq -i ".[0].target=\"$NODE_NAME\"" $SCENARIO_FOLDER/network-filter.yml
-yq -i ".[0].service_account=\"$SERVICE_ACCOUNT\"" $SCENARIO_FOLDER/network-filter.yml
-
-IFS=',' read -ra array <<< "$INTERFACES"
-for ((i=0; i<${#array[@]}; i++)); do
-  yq -i ".[0].interfaces[$i]=\"${array[$i]}\"" $SCENARIO_FOLDER/network-filter.yml
-done
-
-IFS=',' read -ra array <<< "$PORTS"
-for ((i=0; i<${#array[@]}; i++)); do
-  yq -i ".[0].ports[$i]=${array[$i]}" $SCENARIO_FOLDER/network-filter.yml
-done
-
-IFS=',' read -ra array <<< "$PROTOCOLS"
-for ((i=0; i<${#array[@]}; i++)); do
-  yq -i ".[0].protocols[$i]=\"${array[$i]}\"" $SCENARIO_FOLDER/network-filter.yml
-done
-
-IFS=',' read -ra array <<< "$TAINTS"
-for ((i=0; i<${#array[@]}; i++)); do
-  yq -i ".[0].taints[$i]=\"${array[$i]}\"" $SCENARIO_FOLDER/network-filter.yml
-done
-
-envsubst < config.yaml.template > /tmp/node-network-filter-config.yaml
+envsubst < "$SCENARIO_TEMPLATE_PATH" > "$SCENARIO_PATH"
+envsubst < "$CONFIG_FILE_TEMPLATE" > "$CONFIG_FILE"
 
 checks
 
 # Run Kraken
-cat $SCENARIO_FOLDER/network-filter.yml
-cat /tmp/node-network-filter-config.yaml
+cat "$SCENARIO_PATH"
+cat "$CONFIG_FILE"
 
 [ -z "$JUNIT_TESTCASE" ] && JUNIT_TESTCASE="node-network-filter"
 [ -z "$ARTIFACT_DIR" ] && ARTIFACT_DIR="/tmp"
-TEST_VERSION=$(oc version -o json | jq -r '.openshiftVersion')
+TEST_VERSION="$(oc version -o json | jq -r '.openshiftVersion')"
 
-python3.11 $krkn_loc/run_kraken.py --config=/tmp/node-network-filter-config.yaml \
--o /tmp/report.out \
---junit-testcase "$JUNIT_TESTCASE" \
---junit-testcase-path "$ARTIFACT_DIR" \
---junit-testcase-version "$TEST_VERSION"
+python3.11 "$KRAKEN_FOLDER/run_kraken.py" --config="$CONFIG_FILE" \
+  -o /tmp/report.out \
+  --junit-testcase "$JUNIT_TESTCASE" \
+  --junit-testcase-path "$ARTIFACT_DIR" \
+  --junit-testcase-version "$TEST_VERSION"
